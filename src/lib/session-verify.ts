@@ -1,10 +1,9 @@
-import { getAdminPanelSecret } from "@/lib/env";
-import {
-  formatSessionPayload,
-  isSessionExpired,
-  parseSessionRaw,
-  type SessionPayload,
-} from "@/lib/session-policy";
+function getSecret(): string {
+  const secret = process.env.ADMIN_PANEL_SECRET?.trim();
+  if (secret) return secret;
+  if (process.env.NODE_ENV === "production") return "";
+  return "dev-panel-secret";
+}
 
 function bufferToHex(buffer: ArrayBuffer): string {
   return Array.from(new Uint8Array(buffer))
@@ -12,7 +11,14 @@ function bufferToHex(buffer: ArrayBuffer): string {
     .join("");
 }
 
-async function signPayload(payloadStr: string, secret: string) {
+export async function verifySessionCookie(raw: string | undefined): Promise<boolean> {
+  if (!raw) return false;
+  const [token, signature] = raw.split(".");
+  if (!token || !signature) return false;
+
+  const secret = getSecret();
+  if (!secret) return false;
+
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
     "raw",
@@ -21,36 +27,6 @@ async function signPayload(payloadStr: string, secret: string) {
     false,
     ["sign"]
   );
-  const signed = await crypto.subtle.sign("HMAC", key, encoder.encode(payloadStr));
-  return bufferToHex(signed);
-}
-
-/** Edge-safe session verification for middleware (Web Crypto, not Node crypto). */
-export async function verifySessionCookie(raw: string | undefined): Promise<SessionPayload | null> {
-  const parsed = parseSessionRaw(raw);
-  if (!parsed) return null;
-
-  let secret: string;
-  try {
-    secret = getAdminPanelSecret();
-  } catch {
-    return null;
-  }
-
-  const payloadStr = formatSessionPayload(
-    parsed.payload.token,
-    parsed.payload.issuedAt,
-    parsed.payload.lastActivity
-  );
-  const expected = await signPayload(payloadStr, secret);
-  if (expected !== parsed.signature) return null;
-  if (isSessionExpired(parsed.payload)) return null;
-  return parsed.payload;
-}
-
-export async function encodeSessionCookie(token: string, issuedAt: number, lastActivity: number) {
-  const secret = getAdminPanelSecret();
-  const payloadStr = formatSessionPayload(token, issuedAt, lastActivity);
-  const signature = await signPayload(payloadStr, secret);
-  return `${payloadStr}.${signature}`;
+  const signed = await crypto.subtle.sign("HMAC", key, encoder.encode(token));
+  return bufferToHex(signed) === signature;
 }

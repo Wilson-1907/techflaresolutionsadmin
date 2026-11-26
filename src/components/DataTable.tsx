@@ -5,7 +5,7 @@ interface Column {
 
 interface DataTableProps {
   columns: Column[];
-  rows: Record<string, React.ReactNode>[];
+  rows: Record<string, string>[];
   emptyMessage?: string;
 }
 

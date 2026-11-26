@@ -2,22 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: {
-    default: "Admin | TechFlare Solutions",
-    template: "%s | TechFlare Solutions",
-  },
-  description: "Admin console for TechFlare Solutions — news, CRM, projects, and operations.",
-  icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
-  },
-  openGraph: {
-    title: "TechFlare Solutions Admin",
-    description: "IGNITING INNOVATIONS, DELIVERING SOLUTIONS",
-    type: "website",
-    images: ["/logo.png"],
-  },
+  title: "TechFlare Solutions Admin Panel",
+  description: "Separate admin console for TechFlare Solutions — news, CRM, projects, and operations.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

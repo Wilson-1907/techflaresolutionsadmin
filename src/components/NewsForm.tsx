@@ -18,7 +18,7 @@ const defaultValues: NewsFormValues = {
   excerpt: "",
   content: "",
   authorName: "TechFlare Solutions Admin",
-  published: true,
+  published: false,
 };
 
 interface NewsFormProps {

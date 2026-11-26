@@ -2,22 +2,20 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Newspaper,
-  Megaphone,
-  BookOpen,
-  MessageSquareQuote,
   Users,
   FolderKanban,
   Lightbulb,
   Package,
-  Boxes,
+  DollarSign,
   HeadphonesIcon,
   BarChart3,
   Settings,
   UserCircle,
   Briefcase,
   Mail,
-  CheckCircle,
   Heart,
+  Tags,
+  Megaphone,
 } from "lucide-react";
 
 export type SectionId =
@@ -27,11 +25,14 @@ export type SectionId =
   | "employees"
   | "innovation"
   | "products"
+  | "finance"
   | "support"
   | "analytics"
   | "settings"
   | "community"
-  | "careers";
+  | "careers"
+  | "catalog"
+  | "notices";
 
 export interface NavSection {
   href: string;
@@ -41,22 +42,19 @@ export interface NavSection {
 
 export const mainNav: NavSection[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/approvals", label: "Approvals", icon: CheckCircle },
-  { href: "/news", label: "News & Communications", icon: Newspaper },
-  { href: "/blogs", label: "Blog Moderation", icon: BookOpen },
-  { href: "/catalog", label: "Product Catalog", icon: Boxes },
-  { href: "/jobs", label: "Career Positions", icon: Briefcase },
-  { href: "/testimonials", label: "Testimonials", icon: MessageSquareQuote },
-  { href: "/announcements", label: "Site Notifications", icon: Megaphone },
+  { href: "/notices", label: "Notices & Hiring", icon: Megaphone },
+  { href: "/catalog", label: "Price Catalog", icon: Tags },
+  { href: "/news", label: "News", icon: Newspaper },
   { href: "/crm", label: "CRM", icon: Users },
   { href: "/projects", label: "Projects", icon: FolderKanban },
   { href: "/clients", label: "Clients", icon: UserCircle },
   { href: "/employees", label: "Employees", icon: Briefcase },
   { href: "/innovation", label: "Innovation", icon: Lightbulb },
   { href: "/products", label: "Product Orders", icon: Package },
+  { href: "/finance", label: "Finance", icon: DollarSign },
   { href: "/support", label: "Support", icon: HeadphonesIcon },
   { href: "/community", label: "Community", icon: Heart },
-  { href: "/careers", label: "Job Applications", icon: Mail },
+  { href: "/careers", label: "Careers Apps", icon: Mail },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -91,6 +89,10 @@ export const sectionMeta: Record<SectionId, SectionMeta> = {
     title: "Product Orders",
     description: "Orders placed from the products catalog on the main site.",
   },
+  finance: {
+    title: "Finance",
+    description: "Invoices and billing linked to client projects.",
+  },
   support: {
     title: "Support",
     description: "Open and resolved support tickets from client portal users.",
@@ -108,8 +110,16 @@ export const sectionMeta: Record<SectionId, SectionMeta> = {
     description: "Members who joined the TechFlare Solutions community on the main site.",
   },
   careers: {
-    title: "Job Applications",
-    description: "Applications received through the careers page.",
+    title: "Careers",
+    description: "Job applications received through the careers page. Hiring is currently closed on the public site.",
+  },
+  catalog: {
+    title: "Price Catalog",
+    description: "Searchable internal rates for every TechFlare service and billable item.",
+  },
+  notices: {
+    title: "Notices & Hiring",
+    description: "The two public site notices and current hiring status.",
   },
 };
 

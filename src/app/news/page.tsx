@@ -21,22 +21,14 @@ export default function NewsPage() {
 
   async function load() {
     setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/news");
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Could not load articles from the backend. You can still publish once the API is connected.");
-        setArticles([]);
-        return;
-      }
-      setArticles(data.articles || []);
-    } catch {
-      setError("Could not reach the admin API. Check that MAIN_SITE_URL and ADMIN_API_KEY are set correctly.");
-      setArticles([]);
-    } finally {
-      setLoading(false);
+    const res = await fetch("/api/news");
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) {
+      setError(data.error || "Failed to load articles");
+      return;
     }
+    setArticles(data.articles || []);
   }
 
   useEffect(() => {
@@ -62,8 +54,8 @@ export default function NewsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">News & Communications</h1>
-          <p className="text-muted mt-1">Official announcements, launch updates, and press releases — sync to the main site newsroom when published.</p>
+          <h1 className="text-3xl font-bold">News & Announcements</h1>
+          <p className="text-muted mt-1">Articles sync to the main site newsroom when published.</p>
         </div>
         <Link
           href="/news/new"
@@ -76,13 +68,9 @@ export default function NewsPage() {
       {loading && <p className="text-muted">Loading...</p>}
       {error && <p className="text-red-400">{error}</p>}
 
-      {!loading && !error && articles.length === 0 && (
+      {!loading && articles.length === 0 && (
         <div className="rounded-2xl border border-gold/15 bg-deep-blue/30 p-8 text-center text-muted">
-          <p className="mb-2 font-medium text-white">No articles in the database yet.</p>
-          <p className="text-sm">
-            The main site newsroom shows official pre-launch announcements until you publish here.
-            Create your first article or run <code className="text-gold">npm run db:seed</code> on the backend.
-          </p>
+          No articles yet. Create your first announcement.
         </div>
       )}
 

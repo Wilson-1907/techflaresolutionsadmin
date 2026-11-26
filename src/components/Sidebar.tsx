@@ -3,29 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, ExternalLink } from "lucide-react";
-import Image from "next/image";
-import { getPublicWebsiteUrl } from "@/lib/env";
+import { getMainSiteUrl } from "@/lib/main-site";
 import { mainNav } from "@/lib/sections";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const publicSite = getPublicWebsiteUrl();
+  const mainSite = getMainSiteUrl();
 
   return (
     <aside className="w-64 shrink-0 border-r border-border bg-deep-blue/40 min-h-screen p-6 flex flex-col overflow-y-auto">
-      <div className="mb-6 flex items-center gap-2 border-b border-white/10 pb-4">
-        <Image
-          src="/logo.png"
-          alt="TechFlare Solutions"
-          width={96}
-          height={32}
-          unoptimized
-          className="h-8 w-auto object-contain bg-transparent shrink-0"
-        />
-        <div className="min-w-0">
-          <p className="text-gold text-xs font-semibold uppercase tracking-wider truncate">Admin</p>
-          <h1 className="text-sm font-bold truncate">TechFlare Solutions</h1>
-        </div>
+      <div className="mb-6">
+        <p className="text-gold text-xs font-semibold uppercase tracking-wider">TechFlare Solutions</p>
+        <h1 className="text-lg font-bold">Admin Panel</h1>
+        <p className="text-xs text-muted mt-1">All admin operations live here</p>
       </div>
 
       <nav className="space-y-0.5 flex-1">
@@ -44,7 +34,7 @@ export function Sidebar() {
           );
         })}
         <a
-          href={publicSite}
+          href={mainSite}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-gold/10 text-muted mt-4"

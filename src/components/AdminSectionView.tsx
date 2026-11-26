@@ -2,12 +2,9 @@ import { mainSiteFetch, getMainSiteUrl, MainSiteError } from "@/lib/main-site";
 import { sectionMeta, formatDate, type SectionId } from "@/lib/sections";
 import { DataTable } from "@/components/DataTable";
 import { StatGrid } from "@/components/StatGrid";
-import { ChangePanelPasswordForm } from "@/components/ChangePanelPasswordForm";
 
 type Idea = {
-  id: string;
   title: string;
-  description: string;
   category: string;
   type: string;
   status: string;
@@ -27,7 +24,6 @@ type Solution = {
 };
 
 type UserRow = {
-  id?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -206,7 +202,7 @@ export async function AdminSectionView({ sectionId }: { sectionId: SectionId }) 
           <>
             <StatGrid
               stats={[
-                { label: "Client accounts", value: clients.length, href: "/clients" },
+                { label: "Client accounts", value: clients.length },
                 {
                   label: "With company",
                   value: clients.filter((c) => c.company).length,
@@ -225,7 +221,6 @@ export async function AdminSectionView({ sectionId }: { sectionId: SectionId }) 
                 { key: "phone", label: "Phone" },
                 { key: "points", label: "Points" },
                 { key: "joined", label: "Joined" },
-                { key: "actions", label: "" },
               ]}
               rows={clients.map((c) => ({
                 name: `${c.firstName} ${c.lastName}`,
@@ -234,13 +229,6 @@ export async function AdminSectionView({ sectionId }: { sectionId: SectionId }) 
                 phone: c.phone || "—",
                 points: String(c.points ?? 0),
                 joined: formatDate(c.createdAt),
-                actions: c.id ? (
-                  <a href={`/clients/${c.id}`} className="text-gold text-xs hover:underline">
-                    View details
-                  </a>
-                ) : (
-                  "—"
-                ),
               }))}
             />
           </>
@@ -248,89 +236,29 @@ export async function AdminSectionView({ sectionId }: { sectionId: SectionId }) 
         break;
       }
       case "employees": {
-        let staff: UserRow[] = [];
-        let employeeProfiles: Array<{
-          id: string;
-          workId: string;
-          position: string;
-          active: boolean;
-          department?: { name: string; code?: string } | null;
-          user: { id: string; firstName: string; lastName: string; email: string; role: string };
-        }> = [];
-        try {
-          const empRes = await mainSiteFetch("/api/admin/employees");
-          employeeProfiles = empRes.employees || [];
-        } catch {
-          staff = (await fetchItems("users", "ADMIN,EMPLOYEE,HOD,CIO")) as UserRow[];
-        }
+        const staff = (await fetchItems("users", "ADMIN,EMPLOYEE")) as UserRow[];
         content = (
           <>
-            <div className="mb-6">
-              <a
-                href="/employees/new"
-                className="inline-flex rounded-xl bg-gold px-4 py-2 text-sm font-semibold text-black hover:bg-gold/90"
-              >
-                Register new employee
-              </a>
-            </div>
             <StatGrid
               stats={[
-                {
-                  label: "Staff accounts",
-                  value: employeeProfiles.length || staff.length,
-                  href: "/employees/new",
-                },
-                {
-                  label: "HODs",
-                  value: employeeProfiles.filter((e) => e.user.role === "HOD").length,
-                },
-                {
-                  label: "Developers",
-                  value: employeeProfiles.filter((e) => e.user.role === "EMPLOYEE").length,
-                },
+                { label: "Staff accounts", value: staff.length },
+                { label: "Admins", value: staff.filter((s) => s.role === "ADMIN").length },
+                { label: "Employees", value: staff.filter((s) => s.role === "EMPLOYEE").length },
               ]}
             />
             <DataTable
               columns={[
                 { key: "name", label: "Name" },
-                { key: "workId", label: "Work ID" },
                 { key: "email", label: "Email" },
-                { key: "position", label: "Position" },
-                { key: "department", label: "Department" },
-                { key: "status", label: "Status" },
-                { key: "actions", label: "" },
+                { key: "role", label: "Role" },
+                { key: "joined", label: "Joined" },
               ]}
-              rows={
-                employeeProfiles.length > 0
-                  ? employeeProfiles.map((e) => ({
-                      name: `${e.user.firstName} ${e.user.lastName}`,
-                      workId: e.workId,
-                      email: e.user.email,
-                      position: e.position,
-                      department: e.department ? `${e.department.code || ""} ${e.department.name}`.trim() : "—",
-                      status: e.active ? e.user.role : "Inactive",
-                      actions: (
-                        <a href={`/employees/${e.user.id}/edit`} className="text-gold text-xs hover:underline">
-                          Edit
-                        </a>
-                      ),
-                    }))
-                  : staff.map((s) => ({
-                      name: `${s.firstName} ${s.lastName}`,
-                      workId: "—",
-                      email: s.email,
-                      position: "—",
-                      department: "—",
-                      status: s.role || "—",
-                      actions: s.id ? (
-                        <a href={`/employees/${s.id}/edit`} className="text-gold text-xs hover:underline">
-                          Edit
-                        </a>
-                      ) : (
-                        "—"
-                      ),
-                    }))
-              }
+              rows={staff.map((s) => ({
+                name: `${s.firstName} ${s.lastName}`,
+                email: s.email,
+                role: s.role || "—",
+                joined: formatDate(s.createdAt),
+              }))}
             />
           </>
         );
@@ -353,40 +281,24 @@ export async function AdminSectionView({ sectionId }: { sectionId: SectionId }) 
                 },
               ]}
             />
-            <div className="space-y-3">
-              {ideas.length === 0 ? (
-                <p className="text-muted text-sm">No innovation submissions yet.</p>
-              ) : (
-                ideas.map((i) => {
-                  const submitter = personName(i.user);
-                  const params = new URLSearchParams({
-                    fromIdea: i.id,
-                    title: i.title,
-                    description: i.description.slice(0, 500),
-                    innovator: submitter,
-                  });
-                  return (
-                    <div
-                      key={i.id}
-                      className="rounded-2xl border border-gold/15 bg-deep-blue/30 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                    >
-                      <div>
-                        <p className="font-semibold">{i.title}</p>
-                        <p className="text-xs text-muted mt-1">
-                          {submitter} · {i.category} · {i.status.replace(/_/g, " ")} · {formatDate(i.createdAt)}
-                        </p>
-                      </div>
-                      <a
-                        href={`/catalog/new?${params.toString()}`}
-                        className="shrink-0 rounded-xl border border-gold/30 px-3 py-2 text-xs font-semibold text-gold hover:bg-gold/10"
-                      >
-                        Share as product
-                      </a>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+            <DataTable
+              columns={[
+                { key: "title", label: "Title" },
+                { key: "submitter", label: "Submitter" },
+                { key: "category", label: "Category" },
+                { key: "type", label: "Type" },
+                { key: "status", label: "Status" },
+                { key: "date", label: "Submitted" },
+              ]}
+              rows={ideas.map((i) => ({
+                title: i.title,
+                submitter: personName(i.user),
+                category: i.category,
+                type: i.type.replace(/_/g, " "),
+                status: i.status.replace(/_/g, " "),
+                date: formatDate(i.createdAt),
+              }))}
+            />
           </>
         );
         break;
@@ -419,6 +331,47 @@ export async function AdminSectionView({ sectionId }: { sectionId: SectionId }) 
                 status: o.status,
                 date: formatDate(o.createdAt),
               }))}
+            />
+          </>
+        );
+        break;
+      }
+      case "finance": {
+        const projects = (await fetchItems("projects")) as Project[];
+        const invoiceRows = projects.flatMap((p) =>
+          (p.invoices || []).map((inv) => ({
+            number: inv.number,
+            project: p.name,
+            client: p.client ? `${p.client.firstName} ${p.client.lastName}` : "—",
+            amount: `$${inv.amount.toLocaleString()}`,
+            status: inv.status,
+          }))
+        );
+        content = (
+          <>
+            <StatGrid
+              stats={[
+                { label: "Invoices", value: invoiceRows.length },
+                {
+                  label: "Outstanding",
+                  value: invoiceRows.filter((i) => i.status === "pending" || i.status === "overdue").length,
+                },
+                {
+                  label: "Paid",
+                  value: invoiceRows.filter((i) => i.status === "paid").length,
+                },
+              ]}
+            />
+            <DataTable
+              columns={[
+                { key: "number", label: "Invoice #" },
+                { key: "project", label: "Project" },
+                { key: "client", label: "Client" },
+                { key: "amount", label: "Amount" },
+                { key: "status", label: "Status" },
+              ]}
+              rows={invoiceRows}
+              emptyMessage="No invoices yet. Invoices appear when projects are seeded or created."
             />
           </>
         );
@@ -481,6 +434,17 @@ export async function AdminSectionView({ sectionId }: { sectionId: SectionId }) 
         const apps = (await fetchItems("careers")) as Career[];
         content = (
           <>
+            <div className="rounded-2xl border border-gold/25 bg-gold/5 px-5 py-4 mb-2">
+              <p className="font-semibold text-gold">Public careers: not hiring</p>
+              <p className="text-sm text-muted mt-1">
+                The main site careers page shows a closed talent status. Applications below are historical
+                only until hiring reopens. Manage public notices at{" "}
+                <a href="/notices" className="text-gold hover:underline">
+                  Notices & Hiring
+                </a>
+                .
+              </p>
+            </div>
             <StatGrid stats={[{ label: "Applications", value: apps.length }]} />
             <DataTable
               columns={[
@@ -580,18 +544,9 @@ export async function AdminSectionView({ sectionId }: { sectionId: SectionId }) 
               <ul className="text-sm space-y-2 text-muted list-disc list-inside">
                 <li>ADMIN_API_KEY — shared secret for API calls</li>
                 <li>MAIN_SITE_URL — main site base URL (admin panel)</li>
-                <li>ADMIN_PANEL_PASSWORD — initial login password (change later in Settings → Security)</li>
+                <li>ADMIN_PANEL_PASSWORD — login password for this panel</li>
                 <li>NEXT_PUBLIC_ADMIN_PANEL_URL — main site redirect target</li>
               </ul>
-            </div>
-            <div className="rounded-2xl border border-gold/15 bg-deep-blue/30 p-6 md:col-span-2">
-              <h2 className="font-bold mb-2">Panel security</h2>
-              <p className="text-sm text-muted mb-4">
-                Passwords are stored as secure hashes in the database. Change your admin login password here
-                instead of editing environment variables. Use a strong password (8+ characters with upper,
-                lower, number, and symbol).
-              </p>
-              <ChangePanelPasswordForm />
             </div>
             <div className="rounded-2xl border border-gold/15 bg-deep-blue/30 p-6 md:col-span-2">
               <h2 className="font-bold mb-2">Staff access</h2>
@@ -611,7 +566,7 @@ export async function AdminSectionView({ sectionId }: { sectionId: SectionId }) 
         error =
           "Admin API key mismatch. Set the same ADMIN_API_KEY in frontend/.env and admin-panel/.env, then restart both apps.";
       } else if (err.status === 503) {
-        error = "Backend database unavailable. Ensure the unified backend is running and DATABASE_URL (PostgreSQL) is correct.";
+        error = "Main site database unavailable. Start XAMPP MySQL and ensure DATABASE_URL is correct.";
       } else {
         error = err.message;
       }
